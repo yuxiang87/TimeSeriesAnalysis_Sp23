@@ -62,7 +62,7 @@ nobs <- nrow(raw_inflow_data)
 colnames(raw_inflow_data)=c("Month","Year", "HP1", "HP2","HP3")
 
 #Checking data
-head(raw_inflow_data)
+head(raw_inflow_data) 
 str(raw_inflow_data)
 ```
 ## Date or time period
@@ -142,6 +142,17 @@ ggplot(inflow_data, aes(x=my_date, y=Inflow)) +
             geom_line(aes(y=HP2,col="HP2")) +
             xlab("Time") +
             labs(color="Reservoir")
+
+#if not want legend just use ""
+ggplot(inflow_data, aes(x=my_date, y=Inflow)) +
+            geom_line(aes(y=HP1,col="HP1")) +
+            geom_line(aes(y=HP2,col="HP2")) +
+            xlab("Time") +
+            labs(color="")
+
+
+
+
 ```
 ## Transforming data into time series object
 
@@ -154,4 +165,18 @@ ts_inflow_data
 ```
 
 Note that ts_inflow_data has information on start, end and frequency. We will discuss frequency in future lectures, for now let's just keep the default value for frequency which is 1.
+
+```{r}
+acf(ts_inflow_data[,1])
+# each bar= autCor, value 1~-1. seasonal.
+#blue dot line, in the line = not significant. 
+pacf(ts_inflow_data[,1])
+#blue dot line, in the line = not significant. 
+
+
+
+```
+
+
+
 
