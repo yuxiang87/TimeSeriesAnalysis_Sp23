@@ -173,7 +173,9 @@ acf(ts_inflow_data[,1])
 pacf(ts_inflow_data[,1])
 #blue dot line, in the line = not significant. 
 
-
+library(forecast)
+acf(ts_inflow_data[,1], lag.max = 50)
+pacf(ts_inflow_data[,1], lag.max = 50)
 
 ```
 

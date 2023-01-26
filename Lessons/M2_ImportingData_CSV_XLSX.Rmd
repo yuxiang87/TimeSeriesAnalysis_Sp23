@@ -29,6 +29,16 @@ library(tseries)
 
 ```
 
+## MIN something for xlsx& Java
+```{r}
+# in terminal: brew install openjdk
+# in terminal: brew info openjdk
+
+#
+
+```
+
+
 ## Importing data with read.xlsx()
 
 Importing data set without change the original file using `read.xlsx()`.
