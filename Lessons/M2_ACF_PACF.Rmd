@@ -179,6 +179,16 @@ pacf(ts_inflow_data[,1], lag.max = 50)
 
 ```
 
+#remove Y2011
+
+```{r}
+N2011_inflow_data <- inflow_data[1:(nobs-12),]
+test_inflow_data <- inflow_data[1:960,]
+
+
+
+```
+
 
 
 
