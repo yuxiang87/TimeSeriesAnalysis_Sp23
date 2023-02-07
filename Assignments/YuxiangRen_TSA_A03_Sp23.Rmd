@@ -1,7 +1,7 @@
 ---
 title: "ENV 790.30 - Time Series Analysis for Energy Data | Spring 2023"
 subtitle: "Assignment 3 - Due date 02/10/23"
-author: "Student Name"
+author: "Yuxiang Ren"
 output: pdf_document
 geometry: margin=2.54cm
 editor_options: 
@@ -33,12 +33,35 @@ R packages needed for this assignment:"forecast","tseries", and "Kendall". Insta
 ```{r}
 #Load/install required package here
 
+library(forecast)
+library(tseries)
+library(kendall)
+library(xlsx)
+
 ```
+
+```{xlsx}
+rawdata <- read.xlsx(file="./Data/Table_10.1_Renewable_Energy_Production_and_Consumption_by_Source.xlsx",header=FALSE,startRow = 13,sheetIndex=1) 
+read_col_names <- read.xlsx(file="./Data/Table_10.1_Renewable_Energy_Production_and_Consumption_by_Source.xlsx",header=FALSE,startRow = 11,endRow=11,sheetIndex=1)
+colnames(rawdata) <- read_col_names
+head(rawdata)
+
+A03_rawdata <-rawdata[, c("Total Biomass Energy Production", "Total Renewable Energy Production", "Hydroelectric Power Consumption")] 
+
+
+```
+
+
 
 ##Trend Component
 
 ### Q1
 Create a plot window that has one row and three columns. And then for each object on your data frame, fill the plot window with time series plot, ACF and PACF. You may use the some code form A2, but I want all three plots on the same window this time. (Hint: use par() function)
+```{Q1}
+#time series
+ts_A03 <- ts(A03_rawdata,frequency = 12, start = c(1973, 1))
+
+```
 
 ### Q2
 From the plot in Q1, do the series Total Biomass Energy Production, Total Renewable Energy Production, Hydroelectric Power Consumption appear to have a trend? If yes, what kind of trend?
