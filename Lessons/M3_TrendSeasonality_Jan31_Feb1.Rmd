@@ -34,7 +34,7 @@ Let's continue working with our inflow data for reservoirs in Brazil.
 ```{r}
 
 #Importing time series data from text file#
-raw_inflow_data <- read.table(file="../Data/inflowtimeseries.txt",header=FALSE,skip=0)
+raw_inflow_data <- read.table(file="./Data/inflowtimeseries.txt",header=FALSE,skip=0)
 
 #Trim the table to include only columns you need
 nhydro <- ncol(raw_inflow_data)-2
@@ -153,10 +153,29 @@ ggplot(inflow_data,aes(x=my_date,y=inflow_data[,iHP+1]))+
 ```
 
 
-```{r}
+```{r remove trend}
 #remove the trend from series
+beta0 <- linear_trend$coefficients[1]
+beta1 <- linear_trend$coefficients[2]
 
 
+DT_inflow_data <- inflow_data[, (iHP+1)]-(beta0+beta1*t)
+
+ggplot(inflow_data,aes(x=my_date,y=inflow_data[,iHP+1]))+
+  geom_line(color="blue")+
+  geom_line(aes(y=DT_inflow_data),color="green")
+
+##Q.which c?
+
+
+##self 
+linear_trend <- lm(inflow_data[,iHP+1] ~ t)
+summary(linear_trend)
+LT_function <- function(x){
+  y=2.1836(x)+637.5519
+  return(y)
+}
+DT_ts_inflow_data <- ts_inflow_data-LT_
 
 ```
 Note that blue line is our original series, red lien is our trend, green line is our original series minus the trend or in other words the detrended series. And in orange is the trend line for the detrended series which has slope 0 meaning we were able to effectively eliminate the trend with a linear model.
@@ -165,8 +184,29 @@ Note that blue line is our original series, red lien is our trend, green line is
 
 Now let's shift attention to the seasonal component.
 
-```{r}
+```{r seasonal means model}
 #Use seasonal means model
+iHP = 1
+dummies <- seasonaldummy(ts_inflow_data[, iHP])
+season_mean_model <- lm(inflow_data[,(iHP+1)]~dummies)
+summary(season_mean_model)
+
+##negative number---due to it comparing to Dec; mean of Jan= 3482.7+1202.3; 
+#mean of Dec= intercept
+
+beta0 <- season_mean_model$coefficients[1]
+beta1 <- season_mean_model$coefficients[2:12]
+
+inflow_seas_comp <- array(0,nobs)
+for(i in 1:nobs){
+  inflow_seas_comp[i] = beta0 +beta1 %*% dummies[i,]
+}
+
+ggplot(inflow_data,aes(x=my_date,y=inflow_data[,iHP+1]))+
+  geom_line(color="blue")+
+  geom_line(aes(y=inflow_seas_comp),color="orange")
+
+#seasonal mean pattern ---constant, 
 
 
 ```
@@ -194,8 +234,14 @@ Check for deterministic trend.
 
 #Since I have seasonal data I cannot use the simple MannKendall()
 #another example of functions that need a ts object
+SMKtest <- SeasonalMannKendall(ts_inflow_data[,iHP])
+print(summary(SMKtest))
+#due to pvalue < 0.05, reject H0: data follow trend
 
+install.packages("trend")
 
+library(trend)
+SMKtest2 <- smk.test(ts_inflow_data[,iHP]))
 #Use yearly date to run Mann Kendall
 
 ```
@@ -216,10 +262,12 @@ print("Results from Spearman Correlation")
 ### Augmented Dickey Fuller (ADF)
 
 Used to detect stochastic trend.
-
+##ADF-first,stationalitt, yes--main seanality; than 
 ```{r}
 #Null hypothesis is that data has a unit root
 print("Results for ADF test/n")
+print(adf.test(ts_inflow_data[, iHP]), alternative = "stationarity")
+
 
 #Now let's try the yearly data
 print("Results for ADF test on yearly data/n")
