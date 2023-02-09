@@ -281,12 +281,12 @@ print(summary(MannKendall(inflow_data_yearly)))
 Also check for deterministic trend, for non-seasonal data only.
 
 ```{r}
-#Deterministic trend with Spearman Correlation Test
+#Deterministic trend with Spearman Correlation Test,only for yearly data.
 print("Results from Spearman Correlation")
 sp_rho=cor(inflow_data_yearly,my_year,method="spearman")
 print(sp_rho)
 
-#with cor.test you can get test statistics
+#with cor.test you can get test statistics.
 sp_rho=cor.test(inflow_data_yearly,my_year,method="spearman")
 print(sp_rho)
 ```
@@ -294,6 +294,7 @@ print(sp_rho)
 ### Augmented Dickey Fuller (ADF)
 
 Used to detect stochastic trend.
+to seasonal data, also yearly data without seanoal.
 
 ```{r}
 #Null hypothesis is that data has a unit root
