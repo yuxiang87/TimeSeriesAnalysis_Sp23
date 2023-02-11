@@ -38,7 +38,7 @@ Let's continue working with our inflow data for reservoirs in Brazil.
 ```{r}
 
 #Importing time series data from text file#
-raw_inflow_data <- read.table(file="../Data/inflowtimeseries.txt",header=FALSE,skip=0)
+raw_inflow_data <- read.table(file="./Data/inflowtimeseries.txt",header=FALSE,skip=0)
 
 #Trim the table to include only columns you need
 nhydro <- ncol(raw_inflow_data)-2
@@ -116,6 +116,8 @@ for(i in 1:nhydro){
         )
 }
 
+#points in box plot are potential outliers,not 100% outliers.
+
 ```
 
 Note from the plots that some reservoirs have many points outside the box. But it's hard to tell if those are outliers or not because we are looking at the time series with all its components. 
@@ -129,6 +131,7 @@ The random component is the time series without seasonal and trend component. Le
 
 ```{r}
 #Using R decompose function
+#sum trend, seasonal, random(resodul)= observed
 iHP=1
 decompose_inflow_data=decompose(ts_inflow_data[,iHP],"additive")
 plot(decompose_inflow_data)
@@ -189,6 +192,9 @@ ggplot(inflow_random, aes(x=date, y=inflow)) +
 
 ggplot(inflow_random, aes(y=inflow)) +
             geom_boxplot() 
+
+#Q even remove the seaonal, there still have seasonal?
+
 ```
 
 Since we removed the seasonal and trend component, the mean of the random series should be close to zero. Note that from the line plot with the red lines we see that we do have some outliers. The outliers could be due to error collecting the data or an extreme event. Either way, we may want to remove/replace them before fitting a model to our data set to avoid the effect of outliers on our model coefficients. 
@@ -215,7 +221,7 @@ When working with time series you cannot simply remove an outlier. Remember that
 #Just find extreme value
 outlier(inflow_random$inflow) 
                   
-#Function chisq.out.test check if extreme value is outlier
+#Function chisq.out.test check if extreme value is outlier, need var.
 chi_test <- chisq.out.test(inflow_random$inflow,var(inflow_random$inflow))
 print(chi_test) #look at the p-value to find the decision 
 
