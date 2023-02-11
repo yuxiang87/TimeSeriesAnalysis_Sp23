@@ -6,6 +6,7 @@ output: pdf_document
 geometry: margin=2.54cm
 editor_options: 
   chunk_output_type: console
+
 ---
 
 ## Directions
@@ -20,7 +21,8 @@ Please keep this R code chunk options for the report. It is easier for us to gra
 
 ```{r setup, include=FALSE}
 
-knitr::opts_chunk$set(tidy.opts=list(width.cutoff=80), tidy=TRUE) 
+knitr::opts_chunk$set(tidy.opts=list(width.cutoff=80), tidy=TRUE)
+options(tinytex.verbose = TRUE)
 
 ```
 
@@ -28,9 +30,10 @@ When you have completed the assignment, **Knit** the text and code into a single
 
 ## Questions
 
-Consider the same data you used for A2 from the spreadsheet "Table_10.1_Renewable_Energy_Production_and_Consumption_by_Source.xlsx". The data comes from the US Energy Information and Administration and corresponds to the December 2022 **Monthly** Energy Review. Once again you will work only with the following columns: Total Biomass Energy Production, Total Renewable Energy Production, Hydroelectric Power Consumption. Create a data frame structure with these three time series only.
+Consider the same data you used for A2 from the spreadsheet "Table_10.1_Renewable_Energy_Production_
+and_Consumption_by_Source.xlsx". The data comes from the US Energy Information and Administration and corresponds to the December 2022 **Monthly** Energy Review. Once again you will work only with the following columns: Total Biomass Energy Production, Total Renewable Energy Production, Hydroelectric Power Consumption. Create a data frame structure with these three time series only.
 
-R packages needed for this assignment:"forecast","tseries", and "Kendall". Install these packages, if you haven't done yet. Do not forget to load them before running your script, since they are NOT default packages.\\
+R packages needed for this assignment:"forecast","tseries", and "Kendall". Install these packages, if you haven't done yet. Do not forget to load them before running your script, since they are NOT default packages.
 
 ```{r packages}
 #Load/install required package
@@ -44,8 +47,10 @@ library(ggplot2)
 
 ```{r raw data}
 
-rawdata <- read.xlsx(file="./Data/Table_10.1_Renewable_Energy_Production_and_Consumption_by_Source.xlsx",header=FALSE,startRow = 13,sheetIndex=1) 
-read_col_names <- read.xlsx(file="./Data/Table_10.1_Renewable_Energy_Production_and_Consumption_by_Source.xlsx",header=FALSE,startRow = 11,endRow=11,sheetIndex=1)
+rawdata <- read.xlsx(file=
+"./Data/Table_10.1_Renewable_Energy_Production_and_Consumption_by_Source.xlsx",header=FALSE,startRow = 13,sheetIndex=1) 
+read_col_names <- read.xlsx(file=
+"./Data/Table_10.1_Renewable_Energy_Production_and_Consumption_by_Source.xlsx",header=FALSE,startRow = 11,endRow=11,sheetIndex=1)
 colnames(rawdata) <- read_col_names
 head(rawdata)
 
@@ -67,19 +72,22 @@ ts_A03 <- ts(A03_rawdata,frequency = 12, start = c(1973, 1))
 # Total Biomass Energy Production
 par(mfrow = c(1, 3))
 plot(x = rawdata$Month, y = rawdata$`Total Biomass Energy Production`, type="l", xlab="Year", ylab="Energy Production (Trillion Btu)", main="Time series plot")
-Acf(ts_A03[,"Total Biomass Energy Production"],lag.max=40,main=paste("Total biomass energy production"))
+Acf(ts_A03[,"Total Biomass Energy Production"],
+    lag.max=40,main=paste("Total biomass energy production"))
 Pacf(ts_A03[,"Total Biomass Energy Production"],lag.max=40,main=paste(""))
 
 # Total Renewable Energy Production
 par(mfrow = c(1, 3))
 plot(x = rawdata$Month, y = rawdata$`Total Renewable Energy Production`, type="l", xlab="Year", ylab="Energy Production (Trillion Btu)", main="Time series plot")
-Acf(ts_A03[,"Total Renewable Energy Production"],lag.max=40,main=paste("Total Renewable Energy Production"))
+Acf(ts_A03[,"Total Renewable Energy Production"],
+    lag.max=40,main=paste("Total Renewable Energy Production"))
 Pacf(ts_A03[,"Total Renewable Energy Production"],lag.max=40,main=paste(""))
 
 # Hydroelectric Power Consumption
 par(mfrow = c(1, 3))
 plot(x = rawdata$Month, y = rawdata$`Hydroelectric Power Consumption`, type="l", xlab="Year", ylab="Energy Consumption (Trillion Btu)", main="Time series plot")
-Acf(ts_A03[,"Hydroelectric Power Consumption"],lag.max=40,main=paste("Hydroelectric Power Consumption"))
+Acf(ts_A03[,"Hydroelectric Power Consumption"],
+    lag.max=40,main=paste("Hydroelectric Power Consumption"))
 Pacf(ts_A03[,"Hydroelectric Power Consumption"],lag.max=40,main=paste(""))
 
 
@@ -128,7 +136,7 @@ Use the regression coefficients from Q3 to detrend the series. Plot the detrende
 ```{r Q4 detrend}
 #Total Biomass Energy Production
 bio_detrend <- rawdata$`Total Biomass Energy Production`-(bio_beta0+bio_beta1*t)
-ggplot(rawdata, aes(x= `Month`, y= `Total Biomass Energy Production`)) +
+ggplot(rawdata, aes(x= `Month`, y= `Total Biomass Energy Production`)) + 
   geom_line(color="black") +
   geom_line(aes(y=bio_detrend), col="green") + 
   ggtitle("Total Biomass Energy Production") +
@@ -137,7 +145,7 @@ ggplot(rawdata, aes(x= `Month`, y= `Total Biomass Energy Production`)) +
   
 #Total Renewable Energy Production
 ren_detrend <- rawdata$`Total Renewable Energy Production`-(ren_beta0+ren_beta1*t)
-ggplot(rawdata, aes(x= `Month`, y= `Total Renewable Energy Production`)) +
+ggplot(rawdata, aes(x= `Month`, y= `Total Renewable Energy Production`)) + 
   geom_line(color="black") +
   geom_line(aes(y=ren_detrend), col="green") + 
   ggtitle("Total Renewable Energy Production") +
@@ -300,7 +308,7 @@ The fluctuation range between the adjacent points of the three data becomes smal
 
 Plot ACF and PACF for the deseason series and compare with the plots from Q1. Did the plots change? How?
 
-```{r Q8 ACF&PACF deseason}
+```{r Q8 ACF PACF deseason}
 
 #Total Biomass Energy Production
 ts_deseasonBio <- ts(bio_deseason,frequency = 12, start = c(1973, 1))
