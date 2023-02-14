@@ -2,6 +2,8 @@
 title: "M4: Outliers and Missing Data"
 author: "Luana Lima"
 output: pdf_document
+editor_options: 
+  chunk_output_type: console
 ---
 
 
@@ -67,6 +69,8 @@ ggplot(wind_data, aes(x = DATE, y = AWND.1)) +
   geom_line() +
   ylab("Average Wind Speed") 
 
+#gap---missing data
+
 ```
 
 ## Using pre-built function to clean series
@@ -106,17 +110,31 @@ Additional info on decompose()
 
 ```{r}
 #Ex1: Using R decompose function decompose the wind data in seasonal, trend and random
+ts_full_wind <- ts(full_wind_data[3], frequency = 12, start = c(1984,1))
+
+decompose_fullwind=decompose(ts_full_wind,"additive")
+plot(decompose_fullwind)
+decompose_fullwind_2=decompose(ts_full_wind,type = "multiplicative")
+plot(decompose_fullwind_2)
+
+decompose_fullwind_stl <- stl(clean_wind_data, s.window="periodic")
+plot(decompose_fullwind_stl)
+#right bar- 
+
 
 
 #Ex2: Store the three component in separate vector
-  
+trend_fullwind <- decompose_fullwind$trend
+seasonal_fullwind <- decompose_fullwind$seasonal
+random_trend <- decompose_fullwind$random   
 
 #Ex3: Create one data frame with all three vector and the Date columns from wind_data
 
+decompose_result <- data_frame("date"=wind_data$DATE,trend_fullwind,seasonal_fullwind,random_trend)
 
 #Ex4: Inspect the data frame using head() and tail()
-
-
+head(decompose_result,15)
+tail(decompose_result,15)
 # Discuss the results
 
 ```
