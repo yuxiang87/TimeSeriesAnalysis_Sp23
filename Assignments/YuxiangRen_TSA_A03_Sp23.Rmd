@@ -103,6 +103,7 @@ They have trends. For Total Biomass Energy Production and Total Renewable Energy
 ### Q3
 
 Use the *lm()* function to fit a linear trend to the three time series. Ask R to print the summary of the regression. Interpret the regression output, i.e., slope and intercept. Save the regression coefficients for further analysis.
+#p value-signi
 
 ```{r Q3}
 t <- c(1:nrow)
@@ -132,7 +133,7 @@ For Total Renewable Energy Production's linear trend, the intercept is 312.25, a
 ### Q4
 
 Use the regression coefficients from Q3 to detrend the series. Plot the detrended series and compare with the plots from Q1. What happened? Did anything change?
-
+# still have trends, caused by linear model can not move all trends. change trend model.it should around mean 0. in hydo, the trens's p-value--high-not that signifi,-trends patter not that strong
 ```{r Q4 detrend}
 #Total Biomass Energy Production
 bio_detrend <- rawdata$`Total Biomass Energy Production`-(bio_beta0+bio_beta1*t)
@@ -169,6 +170,9 @@ In the above three Figures, the black lines are the original data, and the green
 ### Q5
 
 Plot ACF and PACF for the detrended series and compare with the plots from Q1. Did the plots change? How?
+# correlation decrease. detrends- change ACF more. 
+
+
 ```{r Q5}
 #Total Biomass Energy Production
 ts_detrendBio <- ts(bio_detrend,frequency = 12, start = c(1973, 1))
@@ -208,6 +212,8 @@ Set aside the detrended series and consider the original series again from Q1 to
 ### Q6
 
 Do the series seem to have a seasonal trend? Which serie/series? Use function *lm()* to fit a seasonal means model (i.e. using the seasonal dummies) to this/these time series. Ask R to print the summary of the regression. Interpret the regression output. Save the regression coefficients for further analysis.
+#there is no constant seasonal, the seasonal means is not good one.#p-value-----end parts- whether it fits the model. if july not that significant, still keep it. 
+#can try seansonal dummy- 1,0 for a season. 
 
 ```{r Q6}
 #Total Biomass Energy Production
@@ -247,6 +253,8 @@ For Hydroelectric Power Consumption, most of the seasonal dummies have p-values 
 ### Q7
 
 Use the regression coefficients from Q6 to deseason the series. Plot the deseason series and compare with the plots from part Q1. Did anything change?
+
+#wave.ACF- want decay. PACF- hydo
 
 
 ```{r Q7 deseason}
