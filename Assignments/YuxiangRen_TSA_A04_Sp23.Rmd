@@ -172,6 +172,7 @@ print(summary(SMren))
 
 #ADF
 #Null hypothesis is that data has a unit root
+##note if have unit root, only diff can remove trends.
 print("Results for ADF test/n")
 print(adf.test(ts_A04_rawdata,alternative = "stationary"))
 
