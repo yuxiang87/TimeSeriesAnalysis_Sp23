@@ -39,10 +39,12 @@ Consider the same data you used for A04 from the spreadsheet "Table_10.1_Renewab
 
 ```{r}
 #Importing data set - using xlsx package
-energy_data <- read.xlsx(file="./Data/Table_10.1_Renewable_Energy_Production_and_Consumption_by_Source.xlsx",header=FALSE,startRow = 13,sheetIndex=1) #startRow is equivalent to skip on read.table
+energy_data <- read.xlsx(file=
+                           "./Data/Table_10.1_Renewable_Energy_Production_and_Consumption_by_Source.xlsx",header=FALSE,startRow = 13,sheetIndex=1) #startRow is equivalent to skip on read.table
 
 #Now let's extract the column names from row 11 only
-read_col_names <- read.xlsx(file="./Data/Table_10.1_Renewable_Energy_Production_and_Consumption_by_Source.xlsx",header=FALSE,startRow = 11,endRow=11,sheetIndex=1)
+read_col_names <- read.xlsx(file=
+                              "./Data/Table_10.1_Renewable_Energy_Production_and_Consumption_by_Source.xlsx",header=FALSE,startRow = 11,endRow=11,sheetIndex=1)
 
 colnames(energy_data) <- read_col_names
 head(energy_data)
@@ -59,7 +61,8 @@ For this assignment you will work only with the following columns: Solar Energy 
 ```{r Q1}
 A05_raw <- energy_data %>% 
   select(Month, 'Solar Energy Consumption', 'Wind Energy Consumption') %>% 
-  filter(`Solar Energy Consumption` != "Not Available" & `Wind Energy Consumption` != "Not Available") 
+  filter(`Solar Energy Consumption` != "Not Available" &
+           `Wind Energy Consumption` != "Not Available") 
 
 A05_raw$`Solar Energy Consumption` <- as.numeric(A05_raw$`Solar Energy Consumption`)
 A05_raw$`Wind Energy Consumption` <- as.numeric(A05_raw$`Wind Energy Consumption`)
@@ -73,7 +76,8 @@ Plot the Solar and Wind energy consumption over time using ggplot. Plot each ser
 
 ```{r Q2}
 # pivot_longer
-A05_raw_longer <- pivot_longer(A05_raw,'Solar Energy Consumption':'Wind Energy Consumption', names_to = "Energy", values_to = "Consumption")
+A05_raw_longer <- pivot_longer(A05_raw,'Solar Energy Consumption':'Wind Energy Consumption',
+                               names_to = "Energy", values_to = "Consumption")
 
 Plot_Q2 <- ggplot(A05_raw_longer, aes(Month, Consumption))+
   geom_line()+
@@ -116,31 +120,44 @@ plot(solar_decomp)
 plot(wind_decomp)
 ```
 > Answer:
-Trends in both solar and wind are relatively simple, roughly linear, increasing trends. However, the random component does not look random. There is obvious seasonality in it, especially in solar energy consumption.
+Trends in both solar and wind are relatively simple, roughly linear, increasing trends. However, the random component does not look random. There is obvious seasonality in it, especially in solar energy consumption. Additionally, in solar energy, this seasonal fluctuation in random components was small and stable before 2015, while after 2015, the fluctuation became larger year by year. Moreover, the intensification of seasonal fluctuations in random components began in 2010 in wind. 
 
 ### Q5
 
 Use the decompose function again but now change the type of the seasonal component from additive to multiplicative. What happened to the random component this time?
 
 ```{r}
-
+solar_decomp_mult <- decompose(solar_ts, type = "multiplicative")
+wind_decomp_mult <- decompose(wind_ts, type = "multiplicative")
+plot(solar_decomp_mult)
+plot(wind_decomp_mult)
 ```
+> Answer:
+All values in random become greater than 0. For both energy sources, the range of large fluctuations is no longer the recent years but the earliest years. For example, the large-scale change point of solar energy appeared before 1990, and the emergence time of wind energy was before 2000. The fluctuation of the values in the adjacent years has become smaller, and the seasonality is not as prominent as before.
 
 ### Q6
 
 When fitting a model to this data, do you think you need all the historical data? Think about the data from 90s and early 20s. Are there any information from those years we might need to forecast the next six months of Solar and/or Wind consumption. Explain your response.
 
 > Answer:
+I don't think there need all the historical data. Because the data values for the earlier years are small and have a small trend value, their influence on the forecast for the next 6 months is small and might be ignored.
 
 ### Q7
 
 Create a new time series object where historical data starts on January 2012. Hint: use `filter()` function so that you don't need to point to row numbers, .i.e, `filter(xxxx, year(Date) >= 2012 )`. Apply the decompose function `type=additive` to this new time series. Comment the results. Does the random component look random? Think about our discussion in class about seasonal components that depends on the level of the series. 
 
-```{r}
+```{r Q7}
+A05_2012 <- filter(A05_raw, year(Month) >= 2012 )
+solar_ts_2012 <- ts(A05_2012$`Solar Energy Consumption`, start = c(2012, 1), frequency = 12)
+wind_ts_2012 <- ts(A05_2012$`Wind Energy Consumption`, start = c(2012, 1), frequency = 12)
+solar_decomp_2012 <- decompose(solar_ts_2012, type = "additive")
+wind_decomp_2012 <- decompose(wind_ts_2012, type = "additive")
+plot(solar_decomp_2012)
+plot(wind_decomp_2012)
 
 ```
 
 > Answer:
-
+The random component of the two energy sources no longer looks like it used to have two distinct phases, a stable phase and a huge fluctuation phase. For solar energy, there is still some seasonal fluctuation in the random part. While, such seasonal fluctuations are not as pronounced in wind energy in random section.
 
 
