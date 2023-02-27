@@ -67,6 +67,7 @@ electricity_price_processed <-
   rename( Industrial = industrial.cents.per.kilowatthour ) 
 
 #Generating a box plot by factor where factor is month of the year
+
 TS_Plot <- 
   ggplot(electricity_price_processed, aes(x=Month, y=Residential)) +
       geom_line()
@@ -128,7 +129,8 @@ The ACF and PACF from the seasonal adjusted series will help you specify compone
 
 ```{r}
 
-#Creating non-seasonal residential price time series
+#Creating non-seasonal residential price time series, 
+#note: seasadj,only work for decompose result
 deseasonal_residential_price <- seasadj(decompose_residential_price)  
 
 df_residential <- data.frame( Month = electricity_price_processed$Month,
@@ -169,7 +171,8 @@ print((adf.test(deseasonal_residential_price,alternative="stationary")))
 
 #Note that p-value greater then 0.05 so we accept H0. Data has stochastic trend
 #Lets difference the series to remove the trend.
-#Difference the data at lag 1
+#Difference the data at lag 1. 
+#Note: decrease the ACF value of lag1
 deseasonal_residential_price_diff <- diff(deseasonal_residential_price,differences=1)
 
 #Add the new series to our data frame
@@ -214,8 +217,11 @@ Some important arguments for Arima() are:
 Model_111 <- Arima(deseasonal_residential_price,order=c(1,1,1),include.drift=TRUE)
 print(Model_111)
 compare_aic <- data.frame(Model_111$aic)
+#note: coeficc- 0.23, -0.37..;AIC,AICc(for small data set); 
+
 
 #Check residuals series, if white noise we got a good fit
+#note: hope all value is not sig:all in blue lines; best is the lowest AIC
 par(mar=c(3,3,3,0));par(mfrow=c(1,3))
 ts.plot(Model_111$residuals)
 Acf(Model_111$residuals,lag.max=40)
@@ -224,6 +230,7 @@ Pacf(Model_111$residuals,lag.max=40)
 #Now let's try ARIMA(0,1,1)
 Model_011 <- Arima(deseasonal_residential_price,order=c(0,1,1),include.drift=TRUE)
 print(Model_011)
+#due to ar = 0, only two col. 
 compare_aic <- data.frame(compare_aic,Model_011$aic)
 
 par(mar=c(3,3,3,0));par(mfrow=c(1,3))
@@ -300,6 +307,7 @@ Pacf(Model_101$residuals,lag.max=40)
 
 
 #Remember the order d=1 will perform the differencing, so lets also try ARIMA(1,0,1) on the non-seasonal residential data
+#note: d=1 means, arima also do a differnecing, therefore, still use diff data. 
 Model_101_diff=Arima(deseasonal_residential_price_diff,order=c(1,0,1))
 print(Model_101_diff)
 
@@ -319,6 +327,7 @@ Note that AIC is worse for the ARIMA(1,0,1) with the non-difference series.
 One way of checking goodness of fit is by plotting observed versus fitted value over time. Here we will do it for some of the models we created only. But it can be generalized for all of them.
 
 ```{r}
+#note: data is fitted.
 df_models <- data.frame(
   date = electricity_price_processed$Month,
   observed = as.numeric(deseasonal_residential_price),
