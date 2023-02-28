@@ -125,6 +125,7 @@ Trends in both solar and wind are relatively simple, roughly linear, increasing 
 ### Q5
 
 Use the decompose function again but now change the type of the seasonal component from additive to multiplicative. What happened to the random component this time?
+#note: magnitude of the random---small-better
 
 ```{r}
 solar_decomp_mult <- decompose(solar_ts, type = "multiplicative")
