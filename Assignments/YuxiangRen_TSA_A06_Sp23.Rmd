@@ -4,6 +4,8 @@ subtitle: "Assignment 6 - Due date 03/06/23"
 author: "Yuxiang Ren"
 output: pdf_document
 geometry: margin=2.54cm
+editor_options: 
+  chunk_output_type: console
 ---
   
 ## Directions
@@ -26,7 +28,7 @@ Packages needed for this assignment: "forecast","tseries". Do not forget to load
 
 ```{r}
 #Load/install required package here
-
+library(forecast); library(tseries)
 ```
 
 
@@ -37,48 +39,96 @@ Describe the important characteristics of the sample autocorrelation function (A
 * AR(2)
 
 > Answer: 
+The ACF of AR (2) decay exponentially with time. The PACF of AR (2) has two significant value lags,  Lag 1 and Lag 2. After Lag 2, the following lags' value is small and insignificant.
 
 * MA(1)
 
 > Answer: 
-
+The ACF of MA (1) has a significant correlation at Lag 1 only, followed by lower and non-significant lag values. The PACF shows that the value of lags will decrease exponentially. 
 
 
 ## Q2
 Recall that the non-seasonal ARIMA is described by three parameters ARIMA$(p,d,q)$ where $p$ is the order of the autoregressive component, $d$ is the number of times the series need to be differenced to obtain stationarity and $q$ is the order of the moving average component. If we don't need to difference the series, we don't need to specify the "I" part and we can use the short version, i.e., the ARMA$(p,q)$. Consider three models: ARMA(1,0), ARMA(0,1) and ARMA(1,1) with parameters $\phi=0.6$ and $\theta= 0.9$. The $\phi$ refers to the AR coefficient and the $\theta$ refers to the MA coefficient. Use R to generate $n=100$ observations from each of these three models
 
-```{r}
+```{r Q2}
+#ARMA(1,0)
+set.seed(111)
+ARMAmodel_1<- arima.sim(model=list(ar=0.6), n=100) #the AR coefficient is 0.6
+#ARMA(0,1)
+set.seed(222)
+ARMAmodel_2<- arima.sim(model=list(ma=0.9), n=100) #the MA coefficient is 0.9
+#ARMA(1,1)
+set.seed(333)
+ARMAmodel_3<- arima.sim(model=list(ar=0.6,ma=0.9), n=100)
 
 ```
 
 
 (a) Plot the sample ACF for each of these models in one window to facilitate comparison (Hint: use command $par(mfrow=c(1,3))$ that divides the plotting window in three columns).  
 
-```{r}
-
+```{r Q2 (a)ACF}
+par(mfrow = c(1,3))
+acf(ARMAmodel_1, main = "ARMA(1,0) ACF", ylim=c(-1,1))
+acf(ARMAmodel_2, main = "ARMA(0,1) ACF", ylim=c(-1,1))
+acf(ARMAmodel_3, main = "ARMA(1,1) ACF", ylim=c(-1,1))
 ```
 
 
 (b) Plot the sample PACF for each of these models in one window to facilitate comparison.  
 
 ```{r}
-
+par(mfrow = c(1,3))
+pacf(ARMAmodel_1, main = "ARMA(1,0) PACF", ylim=c(-1,1))
+pacf(ARMAmodel_2, main = "ARMA(0,1) PACF", ylim=c(-1,1))
+pacf(ARMAmodel_3, main = "ARMA(1,1) PACF", ylim=c(-1,1))
 ```
 
 (c) Look at the ACFs and PACFs. Imagine you had these plots for a data set and you were asked to identify the model, i.e., is it AR, MA or ARMA and the order of each component. Would you be identify them correctly? Explain your answer.
 
 > Answer:
+If only identify the model, these plots are enough and can get a correct result. Because the identify model process only needs to judge whether the change in the lag value satisfies a specific trend. However, when identifying the order, we check the lag value, and these lag values near the significant line might affect the correctness of the judgment. For example, in AR's PACF, Lag 2 have significant value.
 
 (d) Compare the ACF and PACF values R computed with the theoretical values you provided for the coefficients. Do they match? Explain your answer.
+#note- coefficients-PACF-
+
+```{r Q2 d}
+ARMA10_pacf <- pacf(ARMAmodel_1)
+print(ARMA10_pacf$acf)
+ARMA01_acf <- acf(ARMAmodel_2)
+print(ARMA01_acf$acf)
+
+```
 
 > Answer: 
 
 
 (e) Increase number of observations to $n=1000$ and repeat parts (a)-(d).
 
-```{r}
+```{r n=1000}
+#ARMA(1,0)
+set.seed(111)
+ARMAmodel_1_1000<- arima.sim(model=list(ar=0.6), n=1000) #the AR coefficient is 0.6
+#ARMA(0,1)
+set.seed(222)
+ARMAmodel_2_1000<- arima.sim(model=list(ma=0.9), n=1000) #the MA coefficient is 0.9
+#ARMA(1,1)
+set.seed(333)
+ARMAmodel_3_1000<- arima.sim(model=list(ar=0.6,ma=0.9), n=1000)
+
+par(mfrow = c(1,3))
+acf(ARMAmodel_1_1000, main = "ARMA(1,0) ACF 1000", ylim=c(-1,1))
+acf(ARMAmodel_2_1000, main = "ARMA(0,1) ACF 1000", ylim=c(-1,1))
+acf(ARMAmodel_3_1000, main = "ARMA(1,1) ACF 1000", ylim=c(-1,1))
+
+par(mfrow = c(1,3))
+pacf(ARMAmodel_1_1000, main = "ARMA(1,0) PACF 1000", ylim=c(-1,1))
+pacf(ARMAmodel_2_1000, main = "ARMA(0,1) PACF 1000", ylim=c(-1,1))
+pacf(ARMAmodel_3_1000, main = "ARMA(1,1) PACF 1000", ylim=c(-1,1))
 
 ```
+
+> Answer: 
+Compared with before (n=100), the blue line area (non-significant interval) is now smaller, the difference between the significant value and the subsequent non-significant value is more obvious, and it is easier to determine the cut-off. Therefore, based on these plots, it can correctly identify the model type and order.
 
 
 

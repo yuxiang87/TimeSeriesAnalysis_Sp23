@@ -207,6 +207,8 @@ Pacf(SARIMA_manual$residuals,lag.max=40)
 ## Automatically fitting seasonal ARIMA to original series
 
 ```{r}
+adf.test(residential_price_seas_diff)
+#p value>0.05-
 
 SARIMA_autofit <- auto.arima(ts_electricity_price[,"Residential"])
 print(SARIMA_autofit)
@@ -216,7 +218,7 @@ ts.plot(SARIMA_autofit$residuals)
 Acf(SARIMA_autofit$residuals,lag.max=40)
 Pacf(SARIMA_autofit$residuals,lag.max=40)
 
-
+#note---SARIMA might better, for both 
 ```
 
 
@@ -234,8 +236,9 @@ ts.plot(ARIMA_autofit$residuals)
 Acf(ARIMA_autofit$residuals,lag.max=40)
 Pacf(ARIMA_autofit$residuals,lag.max=40)
 
+#noteAIC can be postive and negative, this one is lowest---(-234.11)
 
 ```
 
 ## Discussion: Which one to do? ARIMA or SARIMA?
-
+#no
