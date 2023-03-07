@@ -28,7 +28,7 @@ Packages needed for this assignment: "forecast","tseries". Do not forget to load
 
 ```{r}
 #Load/install required package here
-library(forecast); library(tseries)
+library(forecast); library(tseries); library(sarima)
 ```
 
 
@@ -89,17 +89,28 @@ pacf(ARMAmodel_3, main = "ARMA(1,1) PACF", ylim=c(-1,1))
 If only identify the model, these plots are enough and can get a correct result. Because the identify model process only needs to judge whether the change in the lag value satisfies a specific trend. However, when identifying the order, we check the lag value, and these lag values near the significant line might affect the correctness of the judgment. For example, in AR's PACF, Lag 2 have significant value.
 
 (d) Compare the ACF and PACF values R computed with the theoretical values you provided for the coefficients. Do they match? Explain your answer.
-#note- coefficients-PACF-
-
 ```{r Q2 d}
+#ARMA(1,0)
 ARMA10_pacf <- pacf(ARMAmodel_1)
 print(ARMA10_pacf$acf)
-ARMA01_acf <- acf(ARMAmodel_2)
-print(ARMA01_acf$acf)
+ARMA10 <- arima(ARMAmodel_1, order = c(1,0,0))
+coef_ARMA10 <- ARMA10$coef; coef_ARMA10
+#ARMA(0,1)
+ARMA01_pacf <- pacf(ARMAmodel_2)
+print(ARMA01_pacf$acf)
+## can not use the PACF
+ARMA01 <- arima(ARMAmodel_2, order = c(0,0,1))
+coef_ARMA01 <- ARMA01$coef; coef_ARMA01
+#ARMA(1,1)
+ARMA11 <- arima(ARMAmodel_3, order = c(1,0,1))
+coef_ARMA11 <- ARMA11$coef; coef_ARMA11
 
 ```
-
-> Answer: 
+> Answer:
+They do not 100% same, but close.
+For ARMA(1,0), the computed value (0.67) is close to the coefficient (0.6).
+For ARMA(0,1), the computed value (0.9015) is close to the coefficient (0.9).
+For ARMA(1,1), the computed AR value is 0.607 and MA value is 0.927.
 
 
 (e) Increase number of observations to $n=1000$ and repeat parts (a)-(d).
@@ -125,11 +136,25 @@ pacf(ARMAmodel_1_1000, main = "ARMA(1,0) PACF 1000", ylim=c(-1,1))
 pacf(ARMAmodel_2_1000, main = "ARMA(0,1) PACF 1000", ylim=c(-1,1))
 pacf(ARMAmodel_3_1000, main = "ARMA(1,1) PACF 1000", ylim=c(-1,1))
 
+#ARMA(1,0)
+ARMA10_1000_pacf <- pacf(ARMAmodel_1_1000)
+print(ARMA10_1000_pacf$acf)
+ARMA10_1000 <- arima(ARMAmodel_1_1000, order = c(1,0,0))
+coef_ARMA10_1000 <- ARMA10_1000$coef; coef_ARMA10_1000
+#ARMA(0,1)
+ARMA01_1000 <- arima(ARMAmodel_2_1000, order = c(0,0,1))
+coef_ARMA01_1000 <- ARMA01_1000$coef; coef_ARMA01_1000
+#ARMA(1,1)
+ARMA11_1000 <- arima(ARMAmodel_3_1000, order = c(1,0,1))
+coef_ARMA11_1000 <- ARMA11_1000$coef; coef_ARMA11_1000
 ```
 
 > Answer: 
 Compared with before (n=100), the blue line area (non-significant interval) is now smaller, the difference between the significant value and the subsequent non-significant value is more obvious, and it is easier to determine the cut-off. Therefore, based on these plots, it can correctly identify the model type and order.
-
+They do not 100% same, but close.
+For ARMA(1,0)_1000, the computed value (0.620) is more closer to the coefficient (0.6).
+For ARMA(0,1), the computed value is 0.895.
+For ARMA(1,1), the computed AR value is 0.620 and MA value is 0.911.
 
 
 ## Q3
@@ -139,14 +164,32 @@ Consider the ARIMA model $y_t=0.7*y_{t-1}-0.25*y_{t-12}+a_t-0.1*a_{t-1}$
 
 (a) Identify the model using the notation ARIMA$(p,d,q)(P,D,Q)_ s$, i.e., identify the integers $p,d,q,P,D,Q,s$ (if possible) from the equation.
 
+> Answer: 
+Due to $0.7*y_{t-1}$, p = 1
+Due to$-0.25*y_{t-12}$, P=1
+Due to$-0.1*a_{t-1}$ q = 1, Q = 0
+Due to no $y_t-y_{t-s} and y_t-Y_{t-1}, d= 0, D=0.
+s= 12.
+p,d,q,P,D,Q,s
+1,0,1,1,0,0,12
+
 (b) Also from the equation what are the values of the parameters, i.e., model coefficients. 
 
+> Answer: 
+phi = 0.7; AR coefficients.
+theta = 0.1; MA coefficients.
+PHI = -0.25; SAR coefficients.
 
 ## Q4
 
 Plot the ACF and PACF of a seasonal ARIMA$(0, 1)\times(1, 0)_{12}$ model with $\phi =0 .8$ and $\theta = 0.5$ using R. The $12$ after the bracket tells you that $s=12$, i.e., the seasonal lag is 12, suggesting monthly data whose behavior is repeated every 12 months. You can generate as many observations as you like. Note the Integrated part was omitted. It means the series do not need differencing, therefore $d=D=0$. Plot ACF and PACF for the simulated data. Comment if the plots are well representing the model you simulated, i.e., would you be able to identify the order of both non-seasonal and seasonal components from the plots? Explain.
 
 ```{r}
+SARIMAmodel_4<- sim_sarima(model=list(ma=0.5,sar=0.8, nseasons=12), n=1000) 
+par(mfrow = c(1, 2))
+acf(SARIMAmodel_4)
+pacf(SARIMAmodel_4)
 
 ```
-
+> Answer: 
+The ACF plot shows a significant spike at lag 12 and lag 24, which suggests the presence of a seasonal component. Meanwhile, the cut-off after lag 1 can help to identify the order of non-seasonal MA as 1. In PACF, the order of seasonal AR might be able to identify due to lag 12 have high and significant value or there is single spike in lag 12.
