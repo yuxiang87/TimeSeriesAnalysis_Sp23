@@ -4,6 +4,8 @@ subtitle: "Assignment 7 - Due date 03/20/23"
 author: "Yuxiang Ren"
 output: pdf_document
 geometry: margin=2.54cm
+editor_options: 
+  chunk_output_type: console
 ---
 
 ## Directions
@@ -20,9 +22,14 @@ When you have completed the assignment, **Knit** the text and code into a single
 
 ```{r}
 #Load/install required package here
+#install.packages("uroot")
+library(uroot)
 library(forecast)
 library(tseries)
-
+library(readr)
+library(lubridate)
+library(dplyr)
+library(Kendall)
 ```
 
 ## Importing and processing the data set
@@ -35,20 +42,32 @@ Packages needed for this assignment: "forecast","tseries". Do not forget to load
 
 Import the csv file and create a time series object for natural gas. Make you sure you specify the **start=** and **frequency=** arguments. Plot the time series over time, ACF and PACF.
 
-```{r}
-rawdata <- read.csv(read_csv("./Data/Net_generation_United_States_all_sectors_monthly.csv", 
-    skip = 3)
-View(Net_generation_United_States_all_sectors_monthly)) 
-
+```{r Q1 import csv+ Natural Gas time series+ ACF, PACF}
+rawdata <- read.csv( "./Data/Net_generation_United_States_all_sectors_monthly.csv",skip=4)
+rawdata$Month <- dmy(paste0("01 ", rawdata$Month))
+rawdata <- arrange(rawdata, Month)
+naturalgas_ts <- ts(rawdata[,4], start = c(2001,1), frequency = 12)
+par(mfrow = c(1,3))
+plot(naturalgas_ts, main = "Natural Gas time series")
+acf(naturalgas_ts, main = "ACF")
+pacf(naturalgas_ts, main = "PACF")
 ```
 
 ### Q2
 
 Using the $decompose()$ or $stl()$ and the $seasadj()$ functions create a series without the seasonal component, i.e., a deseasonalized natural gas series. Plot the deseasonalized series over time and corresponding ACF and PACF. Compare with the plots obtained in Q1.
 
-```{r}
+```{r decompose}
+dc_naturalgas_ts <- decompose(naturalgas_ts)
+deseasonal_naturalga_ts <- seasadj(dc_naturalgas_ts) 
 
+par(mfrow = c(1,3))
+plot(deseasonal_naturalga_ts, main = "Natural Gas (desesonalized)")
+acf(deseasonal_naturalga_ts, main = "ACF")
+pacf(deseasonal_naturalga_ts, main = "PACF")
 ```
+> Answer:
+Compared to the data without seasonal adjustment, the time series with deseasonalised adjustment has smaller fluctuations and appears more stable. The ACF plot of the time series is also transformed from a curve shape with obvious seasonal fluctuations to a relatively smooth and decreasing line shape. The PACF plot only has a significant lag 1.
 
 ## Modeling the seasonally adjusted or deseasonalized series
 
@@ -56,29 +75,61 @@ Using the $decompose()$ or $stl()$ and the $seasadj()$ functions create a series
 
 Run the ADF test and Mann Kendall test on the deseasonalized data from Q2. Report and explain the results.
 
-```{r}
+```{r ADF & Mann Kendall}
+#ADF
+print("Results for ADF for deseasonalized data")
+print(adf.test(deseasonal_naturalga_ts,alternative = "stationary"))
+#Mann Kendall
+print("Results of Mann Kendall for deseasonalized data")
+print(summary(MannKendall(deseasonal_naturalga_ts)))
 
 ```
+
+> Answer:
+In ADF, the p-value is smaller than 0.05, which rejects the null hypothesis of a unit root and concludes that the deseasonalized natural gas series is stationary, no stochastic trend.
+In the Mann Kendall test, the 2-sided pvalue is smaller than 0.05, which rejects the null hypothesis and concludes that there have determinist trend.  
 
 ### Q4
 
 Using the plots from Q2 and test results from Q3 identify the ARIMA model parameters $p,d$ and $q$. Note that in this case because you removed the seasonal component prior to identifying the model you don't need to worry about seasonal component. Clearly state your criteria and any additional function in R you might use. DO NOT use the $auto.arima()$ function. You will be evaluated on ability to can read the plots and interpret the test results.
 
-```{r}
+```{r Q4}
+# whether d = 1 is enough
+ndiffs(deseasonal_naturalga_ts, alpha = 0.05, test = c("kpss", "adf","pp"),max.d = 2)
 
 ```
+> Answer:
+p,d,q = 1,1,0
+1.	Based on the ADF, the p-value is smaller than  0.05, indicating no stochastic trend. Meanwhile, the Mann-Kendall test shows there is determinist trend. 
+2.	Due to ndiffs function result being 1, which means there only needs 1 differencing, therefore, d = 1.
+3.	In ACF, it’s slow decay, and no cuts off. Therefore, it is an AR model, and q = 0.
+4.	In PACF, after lag1, there is a huge value decrease, although lag 2 is still significant, I still believe lag 1 is cut-off point. Therefore, p=1.
+
+
 
 ### Q5
 
 Use $Arima()$ from package "forecast" to fit an ARIMA model to your series considering the order estimated in Q4. You should allow constants in the model, i.e., $include.mean = TRUE$ or $include.drift=TRUE$. **Print the coefficients** in your report. Hint: use the $cat()$ function to print.
 
-```{r}
-
+```{r Q5 ARIMA}
+ARIMA_deseasonal_naturalgas <- Arima(deseasonal_naturalga_ts, order = c(1,1,0), include.mean = TRUE)
+#coefficients
+cat("ARIMA coefficients:\n")
+cat("Phi_1 = ", ARIMA_deseasonal_naturalgas$coef[1], "\n")
+cat("Intercept = ", ARIMA_deseasonal_naturalgas$coef[2], "\n")
 ```
 
 ### Q6
 
 Now plot the residuals of the ARIMA fit from Q5 along with residuals ACF and PACF on the same window. You may use the $checkresiduals()$ function to automatically generate the three plots. Do the residual series look like a white noise series? Why?
+
+```{r Q6 residuals}
+checkresiduals(ARIMA_deseasonal_naturalgas)
+```
+> Answer:
+The residual series does not look like a white noise series.
+The reason is that I observed significant autocorrelations at multiples of 3 in the ACF. And no (not too much) significant autocorrelations should exist at any lag in a white noise series. 
+
 
 ## Modeling the original series (with seasonality)
 
@@ -87,8 +138,46 @@ Now plot the residuals of the ARIMA fit from Q5 along with residuals ACF and PAC
 Repeat Q4-Q6 for the original series (the complete series that has the seasonal component). Note that when you model the seasonal series, you need to specify the seasonal part of the ARIMA model as well, i.e., $P$, $D$ and $Q$.
 
 ```{r}
+#Q4,
+##ADF
+print("Results for ADF for original data")
+print(adf.test(naturalgas_ts,alternative = "stationary"))
+##Mann Kendall
+print("Results of Mann Kendall for original data")
+print(summary(MannKendall(naturalgas_ts)))
+## d
+ndiffs(naturalgas_ts, alpha = 0.05, test = c("kpss", "adf","pp"),max.d = 2)
+#PDQ,
+par(mfrow = c(1,3))
+plot(naturalgas_ts, main = "Natural Gas (original)")
+Acf(naturalgas_ts, main = "ACF")
+Pacf(naturalgas_ts, main = "PACF")
+##D
+nsdiffs(naturalgas_ts, test = "ocsb", max.D = 1)
+nsdiffs(naturalgas_ts, test = "ch", max.D = 1)
 
+# SARIMA
+SARIMA_naturalgas <- arima(naturalgas_ts, order = c(2, 1, 0), seasonal = list(order = c(1, 0, 0)))
+##coefficients
+cat("SARIMA coefficients:\n")
+cat("Phi_1 = ", SARIMA_naturalgas$coef[1], "\n")
+cat("Intercept = ", SARIMA_naturalgas$coef[2], "\n")
+
+#residuals
+checkresiduals(SARIMA_naturalgas)
 ```
+> Answer:
+qdq, PDQ:(2,1,0),(1,0,0) 
+1.	Based on the ADF and Mann-Kendall test, there is a determinist trend.
+2.	Due to ndiffs function result being 1, which means there only needs 1 differencing, therefore, d = 1.
+3.	In ACF, it’s slow decay and no cuts off. Therefore, it is an AR model and q = 0
+4.	In PACF, after lag2, there is a huge value decrease. Although lag 3 is just a little smaller than the significant line and lag 4 is significant, I still believe lag 2 is the cut-off point. Therefore, p=2.
+5.	D =0 due to nsdiffs result is 0 
+6.	In ACF, there are multiple spikes and the value for lag 1, 12, and 24, and their value is decreasing. Therefore it is SAR, and Q = 0.
+7.	In PACF,  lag 1 and 2 are significant. Although lag 12 is not significant, lag 13 is the spike with a significant value. Therefore, I think the P = 1.
+Residual
+The residual series look like a white noise series.
+The ACF shows that only 1 lag’s autocorrelation value is significant, and the distribution of this residual is close to a normal distribution with mean 0.
 
 
 ### Q8
@@ -96,8 +185,13 @@ Repeat Q4-Q6 for the original series (the complete series that has the seasonal 
 Compare the residual series for Q7 and Q6. Can you tell which ARIMA model is better representing the Natural Gas Series? Is that a fair comparison? Explain your response.
 
 ```{r}
-
+SARIMA_naturalgas
+ARIMA_deseasonal_naturalgas
 ```
+> Answer:
+Comparing residual series, the SARIMA model is better.
+If focused on the residual, SARIMA(2,1,0),(1,0,0) has adequately captured the underlying patterns in the data, and there is little structure remaining in the residuals.
+However, this result might be wrong due to the best way to evaluate the model is based on the predictive accuracy.
 
 
 ## Checking your model with the auto.arima()
@@ -109,15 +203,16 @@ Compare the residual series for Q7 and Q6. Can you tell which ARIMA model is bet
 Use the $auto.arima()$ command on the **deseasonalized series** to let R choose the model parameter for you. What's the order of the best ARIMA model? Does it match what you specified in Q4?
 
 ```{r}
-
+auto.arima(deseasonal_naturalga_ts)
 ```
-
+> Answer: The result is ARIMA(1,1,1).It not match my specified (ARIMA(1,1,0))in Q4. 
 
 ### Q10
 
 Use the $auto.arima()$ command on the **original series** to let R choose the model parameters for you. Does it match what you specified in Q7?
 
 ```{r}
-
+auto.arima(naturalgas_ts)
 ```
+> Answer: The result is ARIMA(1,0,0)(0,1,1).It not match my specified (ARIMA(2,1,0)(1,0,0))in Q7. 
 
