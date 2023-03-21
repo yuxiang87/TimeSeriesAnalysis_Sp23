@@ -1,7 +1,7 @@
 ---
 title: "ENV 790.30 - Time Series Analysis for Energy Data | Spring 2023"
 subtitle: "Assignment 7 - Due date 03/20/23"
-author: "Student Name"
+author: "Yuxiang Ren"
 output: pdf_document
 geometry: margin=2.54cm
 ---
@@ -20,6 +20,8 @@ When you have completed the assignment, **Knit** the text and code into a single
 
 ```{r}
 #Load/install required package here
+library(forecast)
+library(tseries)
 
 ```
 
@@ -34,6 +36,9 @@ Packages needed for this assignment: "forecast","tseries". Do not forget to load
 Import the csv file and create a time series object for natural gas. Make you sure you specify the **start=** and **frequency=** arguments. Plot the time series over time, ACF and PACF.
 
 ```{r}
+rawdata <- read.csv(read_csv("./Data/Net_generation_United_States_all_sectors_monthly.csv", 
+    skip = 3)
+View(Net_generation_United_States_all_sectors_monthly)) 
 
 ```
 
