@@ -56,21 +56,22 @@ $MAPE = \sum|Actual - Forecast|/Actual/n*100$
 ```{r}
 actual=c(107,125,115,118,108)
 forecast=c(110,121,112,120,109)
-
+n= 5
 #Exercise 1: compute MAD, MSE and MAPE
 n=length(actual)
 
-ME = 
-MSE = 
-RMSE = 
-MAE = 
-MPE = 
-MAPE = 
+ME = sum(actual - forecast)/n
+MSE = sum(actual - forecast)^2/n
+RMSE = sqrt(MSE)
+MAD = sum(abs(actual - forecast))/n
+MPE = sum((actual - forecast)/actual)/n*100
+MAPE = sum(abs(actual - forecast))/actual/n*100
 
 
 
 #Exercise 2: Compute the forecast accuracy metrics you calculated in Ex 1 with the results from accuracy() function.
-
+seas_scores <- as.data.frame(cbind(ME,RMSE,MAE,MPE,MAPE))
+auto_score <- accuracy(forecast,actual)
 
 ```
 

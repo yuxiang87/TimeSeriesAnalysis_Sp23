@@ -215,6 +215,7 @@ kbl(seas_scores,
   kable_styling(full_width = FALSE, position = "center") %>%
   #highlight model with lowest RMSE
   kable_styling(latex_options="striped", stripe_index = which.min(seas_scores[,"RMSE"]))
+
 ```
 
 ## Visialization Challenge
