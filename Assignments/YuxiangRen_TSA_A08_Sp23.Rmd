@@ -1,7 +1,7 @@
 ---
 title: "ENV 790.30 - Time Series Analysis for Energy Data | Spring 2023"
 subtitle: "Assignment 8 - Due date 03/27/23"
-author: "Student Name"
+author: "Yuxiang Ren"
 output: pdf_document
 geometry: margin=2.54cm
 ---
@@ -20,7 +20,13 @@ Some packages needed for this assignment: `forecast`,`tseries`,`smooth`. Do not 
 
 ```{r}
 #Load/install required package here
-
+library(forecast)
+library(tseries)
+library(smooth)
+library(tidyr)
+library(dplyr)
+library(lubridate)
+library(ggplot2)
 ```
 
 ## Importing and processing the data set
@@ -35,7 +41,24 @@ For all parts of the assignment prepare the data set such that the model conside
 
 Read the file into a data frame. Prepare your time series data vector such that observations start in January 2000 and end in December 2009. Make you sure you specify the **start=** and **frequency=** arguments. Plot the time series over time, ACF and PACF.
 
-```{r}
+```{r Q1}
+raw <- read.csv(
+  file="./Data/inflowtimeseries.txt",
+  header=FALSE, sep = "\t")
+raw_clean <- raw %>% separate(col = V1,  into = c("month", "year", "inflow"), sep = " ") %>% 
+  mutate(Date = paste(year, month, "01", sep = "-")) %>% select(Date, V15) 
+
+#Date period  
+raw_clean$Date <- ymd(raw_clean$Date) 
+raw_inflow_09 <- filter(raw_clean, Date >= "2000-01-01" & Date <= "2009-12-01")
+raw_inflow_10 <- filter(raw_clean, Date >= "2010-01-01" & Date <= "2010-12-01")
+
+#ts
+ts_09 <- ts(raw_inflow_09$V15, start = c(2000,1), frequency = 12)
+par(mfrow = c(1,3))
+plot(ts_09, main = "monthly inflow for one hydro power plant in Brazil")
+acf(ts_09, main = "ACF")
+pacf(ts_09, main = "PACF")
 
 ```
 
@@ -44,6 +67,23 @@ Read the file into a data frame. Prepare your time series data vector such that 
 Using the $decompose()$ or $stl()$ and the $seasadj()$ functions create a series without the seasonal component, i.e., a deseasonalized inflow series. Plot the deseasonalized series and original series together using ggplot, make sure your plot includes a legend. Plot ACF and PACF for the deaseasonalized series. Compare with the plots obtained in Q1.
 
 ```{r}
+inflow09_decomp <- stl(ts_09, s.window = "periodic")
+inflow09_desea <- seasadj(inflow09_decomp)
+inflow09_df <- data.frame(Date = raw_inflow_09$Date, Original = raw_inflow_09$V15, Deseasonalized = inflow09_desea)
+#plot:original vs deseasonalized
+ggplot(inflow09_df, aes(x = Date)) +
+  geom_line(aes(y = Original, color = "Original"), size = 1) +
+  geom_line(aes(y = Deseasonalized, color = "Deseasonalized"), size = 1) +
+  scale_color_manual(values = c("Original" = "black", "Deseasonalized" = "red")) +
+  labs(x = "Date", y = "Inflow (m^3/s)", color = "Series") +
+  ggtitle("Original vs. Deseasonalized series") +
+  theme_bw()
+#ACF,PACF deseasonalized
+ts_09_desea <- ts(inflow09_desea, start = c(2000,1), frequency = 12)
+par(mfrow = c(1,3))
+plot(ts_09_desea, main = "monthly inflow (deseasonlized) for one hydro power plant in Brazil")
+acf(ts_09_desea, main = "ACF")
+pacf(ts_09_desea, main = "PACF")
 
 ```
 
