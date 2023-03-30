@@ -4,7 +4,7 @@ author: "Luana Lima"
 output: pdf_document
 always_allow_html: true
 editor_options: 
-  chunk_output_type: inline
+  chunk_output_type: console
 ---
 
 ## Setting R code chunk options
@@ -23,9 +23,9 @@ Second R code chunk is for loading packages. By setting message = FALSE, the cod
 library(lubridate)
 library(ggplot2)
 library(forecast)  
-#library(Kendall)
+library(Kendall)
 library(tseries)
-#library(outliers)
+library(outliers)
 library(tidyverse)
 library(smooth)
 
@@ -185,14 +185,15 @@ The function takes a few arguments, here are the important ones:
 
 **x**  time series object
 **type** type of the model. If `type ='level'` R will fit a local level model. If `type ='trend'` R will fit a local linear trend model and if `type ='BSM'` R will fit a basic structural model. If argument is omitted, a BSM is used for a time series with frequency > 1, and a local trend model otherwise.
-**fixed** optional numeric vector with values for the components variances in the following order $fixed=c(\sigma^2_\eta,\sigma^2_\xi,\sigma^2_\omega,\sigma^2_\epsilon)$. The first variance is with respect to level, second is trend, third is seasonal and fourth is observation. If supplied, only NA entries in fixed will be varied. This argument is useful for setting variances to zero.
+**fixed** optional numeric vector with values for the components variances in the following order $fixed=c(\sigma^2_\eta,\sigma^2_\xi,\sigma^2_\omega,\sigma^2_\epsilon)$. 
+__(level, trend, seasonal, observation)__ The first variance is with respect to level, second is trend, third is seasonal and fourth is observation. If supplied, only NA entries in fixed will be varied. This argument is useful for setting variances to zero.
 
 
 ```{r}
 SS_seas <- StructTS(ts_price,
                     type="BSM",fixed=c(0,0.001,0.3,NA))   #this function has convergence issues
 checkresiduals(SS_seas)
-
+SS_seas
 #Generating forecasts
 # StructTS() does not call the forecast() internally so we need one more step
 SS_for <- forecast(SS_seas,h=n_for)
