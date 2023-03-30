@@ -1,9 +1,14 @@
 ---
 title: "ENV 790.30 - Time Series Analysis for Energy Data | Spring 2023"
-subtitle: "Assignment 8 - Due date 03/27/23"
 author: "Yuxiang Ren"
-output: pdf_document
+subtitle: "Assignment 8 - Due date 03/27/23"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
 geometry: margin=2.54cm
+editor_options:
+  chunk_output_type: console
 ---
 
 ## Directions
@@ -20,6 +25,8 @@ Some packages needed for this assignment: `forecast`,`tseries`,`smooth`. Do not 
 
 ```{r}
 #Load/install required package here
+#install.packages("tinytex")
+library(tinytex)
 library(forecast)
 library(tseries)
 library(smooth)
@@ -27,6 +34,7 @@ library(tidyr)
 library(dplyr)
 library(lubridate)
 library(ggplot2)
+library(kableExtra)
 ```
 
 ## Importing and processing the data set
@@ -51,12 +59,12 @@ raw_clean <- raw %>% separate(col = V1,  into = c("month", "year", "inflow"), se
 #Date period  
 raw_clean$Date <- ymd(raw_clean$Date) 
 raw_inflow_09 <- filter(raw_clean, Date >= "2000-01-01" & Date <= "2009-12-01")
-raw_inflow_10 <- filter(raw_clean, Date >= "2010-01-01" & Date <= "2010-12-01")
-
+raw_inflow_10 <- filter(raw_clean, Date >= "2000-01-01" & Date <= "2010-12-01")
+raw_inflow_2010 <- filter(raw_clean, Date >= "2010-01-01" & Date <= "2010-12-01")
 #ts
 ts_09 <- ts(raw_inflow_09$V15, start = c(2000,1), frequency = 12)
 par(mfrow = c(1,3))
-plot(ts_09, main = "monthly inflow for one hydro power plant in Brazil")
+plot(ts_09, main = "monthly inflow",ylab ="Inflow (m^3/s)")
 acf(ts_09, main = "ACF")
 pacf(ts_09, main = "PACF")
 
@@ -66,7 +74,7 @@ pacf(ts_09, main = "PACF")
 
 Using the $decompose()$ or $stl()$ and the $seasadj()$ functions create a series without the seasonal component, i.e., a deseasonalized inflow series. Plot the deseasonalized series and original series together using ggplot, make sure your plot includes a legend. Plot ACF and PACF for the deaseasonalized series. Compare with the plots obtained in Q1.
 
-```{r}
+```{r Q2}
 inflow09_decomp <- stl(ts_09, s.window = "periodic")
 inflow09_desea <- seasadj(inflow09_decomp)
 inflow09_df <- data.frame(Date = raw_inflow_09$Date, Original = raw_inflow_09$V15, Deseasonalized = inflow09_desea)
@@ -81,11 +89,13 @@ ggplot(inflow09_df, aes(x = Date)) +
 #ACF,PACF deseasonalized
 ts_09_desea <- ts(inflow09_desea, start = c(2000,1), frequency = 12)
 par(mfrow = c(1,3))
-plot(ts_09_desea, main = "monthly inflow (deseasonlized) for one hydro power plant in Brazil")
+plot(ts_09_desea, main = "monthly inflow (deseasonlized)",ylab ="Inflow (m^3/s)" )
 acf(ts_09_desea, main = "ACF")
 pacf(ts_09_desea, main = "PACF")
 
 ```
+> Answer:
+Compared with the original data, the de-seasonal data has less seasonal fluctuation in the ACF graph but still has a certain seasonality. And the deseasonalized series has better PACF due to less lag value higher than the significance line. 
 
 ## Part II: Forecasting with ARIMA models and its variations
 
@@ -93,30 +103,48 @@ pacf(ts_09_desea, main = "PACF")
 
 Fit a non-seasonal ARIMA$(p,d,q)$ model using the auto.arima() function to the non-seasonal data. Forecast 12 months ahead of time using the $forecast()$ function. Plot your forecasting results and further include on the plot the last year of non-seasonal data to compare with forecasted values (similar to the plot on the lesson file for M10).
 
-```{r}
+```{r Q3}
+arima_09_desea <- auto.arima(ts_09_desea, max.D = 0, max.P = 0, max.Q = 0)
+arima_09_desea_forecast <- forecast(object = arima_09_desea, h = 12)
+plot(arima_09_desea_forecast)
 
 ```
+> Answer: The forecast result is a straight line, which I feel is strange and not accurate.
 
 ### Q4
 
 Put the seasonality back on your forecasted values and compare with the original seasonal data values. $Hint:$ One way to do it is by summing the last year of the seasonal component from your decompose object to the forecasted series. 
 
 
-```{r}
-
+```{r Q4}
+#seasonal data
+inflow09_sea <- inflow09_decomp$time.series[,"seasonal"]
+inflow09_sea_forecast <- forecast(inflow09_sea, h= 12)
+plot(inflow09_sea_forecast)
 ```
 
 ### Q5
 
 Repeat Q3 for the original data, but now fit a seasonal ARIMA$(p,d,q)x(P,D,Q)_ {12}$ also using the auto.arima().
 
-```{r}
+```{r Q5}
+sarima_ts_09 <- auto.arima(ts_09)
+sarima_ts_09_forecast <- forecast(object = sarima_ts_09, h = 12)
 
+autoplot(ts_09) +
+    autolayer(sarima_ts_09_forecast,series="SARIMA",PI=FALSE) +
+    autolayer(inflow09_sea_forecast,series="Seasonal component",PI=FALSE) +
+    ylab("Electricity Price") +
+    xlab("") +
+    labs(col="Models")
+##note: forecast have more value, if use ggplot need identify the forecast$mean.
 ```
 
 ### Q6
 
 Compare the plots from Q4 and Q5 using the autoplot() function.
+> Answer:The fluctuations of the two forecast result are consistent. Because SARIMA includes trends and residuals, its value is closer to the real vale.
+
 
 ## Part III: Forecasting with Other Models
 
@@ -124,8 +152,9 @@ Compare the plots from Q4 and Q5 using the autoplot() function.
 
 Fit an exponential smooth model to the original time series using the function $ses()$  from package `forecast`. Note that this function automatically do the forecast. Do not forget to set the arguments: silent=FALSE and holdout=FALSE, so that the plot is produced and the forecast is for the year of 2010.
 
-```{r}
-
+```{r Q7}
+ses_ts_09 <- ses(y = ts_09, h = 12, holdout = FALSE, silent = FALSE) 
+plot(ses_ts_09)
 ```
 
 
@@ -136,24 +165,51 @@ Fit an exponential smooth model to the original time series using the function $
 Make one plot with the complete original seasonal historical data (Jan 2000 to Dec 2010). Now add the forecasts from each of the developed models in parts Q4, Q5, Q7 and Q8. You can do it using the autoplot() combined with autolayer(). If everything is correct in terms of time line, the forecasted lines should appear only in the final year. If you decide to use ggplot() you will need to create a data frame with all the series will need to plot. Remember to use a different color for each model and add a legend in the end to tell which forecast lines corresponds to each model.
 
 
-```{r}
+```{r Q8}
+ts_10 <- ts(raw_inflow_10$V15, start = c(2000,1), frequency = 12)
 
+
+autoplot(ts_10) +
+  autolayer(arima_09_desea_forecast, series = "ARIMA (Non-Seasonal)", PI = FALSE) +
+  autolayer(sarima_ts_09_forecast, series = "SARIMA (Seasonal)", PI = FALSE) +
+  autolayer(ses_ts_09, series = "SES", PI = FALSE) +
+  autolayer(inflow09_sea_forecast, series = "Seasonal Component", PI = FALSE) +
+  xlab("Year") + ylab("Inflow (m^3/s)") +
+  ggtitle("Inflow Forecast Comparison") +
+  scale_color_manual(values = c("blue", "red", "green", "purple")) +
+  theme_bw()
 ```
 
 ### Q9
 
 From the plot in Q9 which model or model(s) are leading to the better forecasts? Explain your answer. Hint: Think about which models are doing a better job forecasting the high and low inflow months for example.
 
-
-```{r}
-
-```
+> Answer:SARIMA model is best. It closely follows the original inflow and captures the seasonal fluctuations.
 
 ### Q10
 
 Now compute the following forecast metrics we learned in class: RMSE and MAPE,  for all the models you plotted in part Q9. You can do this by hand since your have forecasted and observed values for the year of 2010. Or you can use R function $accuracy()$ from package "forecast" to do it. Build and a table with the results and highlight the model with the lowest MAPE. Does the lowest MAPE corresponds match your answer for part Q10?
 
+
 ```{r}
+observed_2010 <- raw_inflow_2010[,"V15"]
+accuracy_arima <- accuracy(arima_09_desea_forecast$mean, observed_2010)
+accuracy_sarima <- accuracy(sarima_ts_09_forecast$mean, observed_2010)
+accuracy_ses <- accuracy(ses_ts_09$mean, observed_2010)
+accuracy_sea <- accuracy(inflow09_sea_forecast$mean, observed_2010)
 
+scores <- as.data.frame(rbind(accuracy_arima, accuracy_sarima, accuracy_ses,accuracy_sea ))
+row.names(scores) <- c("ARIMA", "SARIMA", "SES","SeasonalC")
+
+kbl(scores, 
+      caption = "Forecast Accuracy",
+      digits = array(5,ncol(scores)))
+
+best_model_index <- which.min(scores[,"MAPE"])
+cat("The best model by MAPE is:", row.names(scores[best_model_index,]))     
 ```
+> Answer:Yes, it is SARIMA.
 
+
+
+##window function-

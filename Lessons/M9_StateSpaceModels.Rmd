@@ -176,7 +176,7 @@ SSES_seas <- es(ts_price,model="ZZZ",h=n_for,holdout=FALSE,silent="none")
 plot(SSES_seas)
 checkresiduals(SSES_seas)
 ```
-Note that the best model here was a ETS(AAM) which means we are fitting an additive random error, an additive trend and a multiplicative seasonal component.
+Note that the best model here was a __ETS(AAM)__ which means we are fitting an additive random error, an additive trend and a multiplicative seasonal component.
 
 ### Model 5: SS with StructTS()
 
