@@ -38,6 +38,7 @@ library(forecast)
 library(Kendall)
 library(tseries)
 library(outliers)
+
 library(tidyverse)
 library(smooth)
 library(zoo)
@@ -66,7 +67,7 @@ kbl(df_frequency_spec, caption="Frequency used with ts() function") %>%
   kable_styling(full_width = FALSE, position = "center",latex_options = "hold_position")
 ```
 
-The weekly is already a challenge for the ts() function because typically the seasonal period is 365.25/7 ~ 52.179 on average and not exactly 52. The 365.25 should be used instead of 365 to account for leap years. One way to work around it and keep frequency integer is to eliminate one day from the leap years.
+The weekly is already a challenge for the ts() function because typically the seasonal period is 365.25/7 ~ 52.179 on average and not exactly 52. The 365.25 should be used instead of 365 to account for leap years. One way to work around it and keep frequency integer is to **eliminate one day** from the leap years.
 
 For the `msts()` we will use different frequency specifications. Here are some examples. The `msts` allow for non-integer frequency specification as you can see for daily data. 
 
@@ -101,8 +102,8 @@ Today we will learn a few examples of models for multiple seasonal patterns.
 
 * ETS
 * ARIMA with dynamic harmonic fourier components
-* TBATS
-* Neural Network
+* TBATS 
+* Neural Network (can not knit pdf)
 
 
 ## Importing data with multiple seasonal patterns
@@ -123,7 +124,7 @@ The data will need some tidying up. Here we are using the `tidyverse` package an
 #Preferred method!!
 temp <- tempfile()
 download.file("https://archive.ics.uci.edu/ml/machine-learning-databases/00235/household_power_consumption.zip",temp)
-household_all <- read.table(unz(temp, "household_power_consumption.txt"),header=TRUE, sep=";")
+household_all <- read.table(unz(temp, "household_power_consumption.txt"),header=TRUE, sep=";") ##note unz(unzip)
 unlink(temp)
 
 #Fixing date columns and selecting active power only column
